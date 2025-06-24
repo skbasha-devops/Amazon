@@ -1,9 +1,10 @@
 pipeline {
     agent any
     stages {
-        stage('Build') {
+        stage('feature1.0') {
             steps {
-                echo 'Running default build'
+                echo 'Running basic build'
+                sh 'make'
             }
         }
     }
