@@ -3,7 +3,14 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                echo 'Running default build'
+                echo 'Building deployment package'
+                sh 'make package'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                echo 'Deploying to staging'
+                sh 'make deploy-staging'
             }
         }
     }
