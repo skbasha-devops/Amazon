@@ -2,22 +2,44 @@ pipeline {
     agent any
 
     environment {
-        DEPLOY_DIR = "${WORKSPACE}/deploy-repo"
+        WAR_FILE = 'Amazon/Amazon-Web/target/Amazon.war'
+        REMOTE_USER = 'ec2-user'                    // your server user
+        REMOTE_HOST = '192.168.1.100'               // your server IP
+        REMOTE_PATH = '/opt/tomcat/webapps/'        // Tomcat webapps directory
     }
 
     stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+                echo "✅ Checked out code from ${env.GIT_URL}"
+            }
+        }
+
         stage('Build') {
             steps {
-                dir('Amazon') {
-                    sh 'mvn clean verify'
+                script {
+                    if (fileExists('pom.xml')) {
+                        echo "Building Maven project..."
+                        sh 'mvn clean package -DskipTests'
+                    } else {
+                        error "pom.xml not found. Not a Maven project."
+                    }
                 }
             }
         }
 
         stage('Deploy') {
             steps {
-                dir('Amazon') {
-                    sh "mvn deploy -DaltDeploymentRepository=local::default::file=${DEPLOY_DIR}"
+                script {
+                    if (fileExists("${WAR_FILE}")) {
+                        echo "Deploying WAR file to Tomcat..."
+                        sh """
+                            scp ${WAR_FILE} ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_PATH}
+                        """
+                    } else {
+                        error "WAR file not found: ${WAR_FILE}"
+                    }
                 }
             }
         }
@@ -25,22 +47,12 @@ pipeline {
 
     post {
         success {
-            echo "✅ Build and Deploy succeeded!"
+            echo "🚀 Deployment complete: ${WAR_FILE} -> ${REMOTE_HOST}:${REMOTE_PATH}"
         }
-
         failure {
-            echo "❌ Pipeline failed. Please check the console output."
-        }
-
-        always {
-            echo "📦 Build and deploy completed - ${currentBuild.currentResult}"
-
-            archiveArtifacts artifacts: 'Amazon/target/*.jar,Amazon/target/*.war,deploy-repo/**/*', allowEmptyArchive: true
-
-            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                junit 'Amazon/target/surefire-reports/*.xml'
-            }
+            echo "❌ Deployment failed. Check logs."
         }
     }
-}  // ✅ this is the final closing brace that was missing
+}
+
 
