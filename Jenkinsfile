@@ -9,24 +9,56 @@ pipeline {
             }
         }
         
+        stage('Discover Projects') {
+            steps {
+                script {
+                    // List all projects in the workspace
+                    def projects = findFiles(glob: '*')
+                    echo "Found projects: ${projects.collect{it.name}}"
+                    
+                    // Try to find projects with test configurations
+                    def testableProjects = projects.findAll { project ->
+                        fileExists("${project.name}/pom.xml") || 
+                        fileExists("${project.name}/package.json") ||
+                        fileExists("${project.name}/build.gradle")
+                    }
+                    
+                    if (testableProjects.isEmpty()) {
+                        error("No projects with test configurations found")
+                    }
+                    
+                    // Store the list of testable projects
+                    env.TESTABLE_PROJECTS = testableProjects.collect{it.name}.join(',')
+                }
+            }
+        }
+        
         stage('Run Tests') {
             steps {
                 script {
-                    // Check what test commands are available
-                    if (fileExists('pom.xml')) {
-                        echo "Running Maven tests"
-                        sh 'mvn test || echo "Test execution failed"'
-                    } else if (fileExists('package.json')) {
-                        echo "Running npm tests"
-                        sh 'npm test || echo "Test execution failed"'
-                    } else if (fileExists('Makefile')) {
-                        echo "Running make tests"
-                        sh 'make test || echo "Test execution failed"'
-                    } else {
-                        echo "No standard test configuration found"
-                        echo "Workspace contents:"
-                        sh 'ls -la'
-                        error("No recognized test configuration found")
+                    def failedTests = []
+                    
+                    env.TESTABLE_PROJECTS.split(',').each { project ->
+                        try {
+                            dir(project) {
+                                echo "Testing project: ${project}"
+                                
+                                if (fileExists('pom.xml')) {
+                                    sh 'mvn test'
+                                } else if (fileExists('package.json')) {
+                                    sh 'npm install && npm test'
+                                } else if (fileExists('build.gradle')) {
+                                    sh 'gradle test'
+                                }
+                            }
+                        } catch (Exception e) {
+                            failedTests << project
+                            echo "Tests failed for ${project}: ${e.getMessage()}"
+                        }
+                    }
+                    
+                    if (!failedTests.isEmpty()) {
+                        error("Tests failed for projects: ${failedTests.join(',')}")
                     }
                 }
             }
@@ -35,9 +67,16 @@ pipeline {
     
     post {
         always {
-            junit '**/target/surefire-reports/*.xml' // For Maven
-            junit '**/test-results/*.xml' // For other frameworks
-            archiveArtifacts artifacts: '**/reports/**/*', allowEmptyArchive: true
+            // Collect test results from all projects
+            junit '**/target/surefire-reports/*.xml' // Maven
+            junit '**/build/test-results/**/*.xml'   // Gradle
+            junit '**/test-results/**/*.xml'        // Other
+            
+            // Archive test reports if they exist
+            archiveArtifacts artifacts: '**/reports/**/*, **/target/surefire-reports/*.xml, **/build/test-results/**/*.xml', allowEmptyArchive: true
+            
+            // Clean up workspace
+            cleanWs()
         }
     }
 }
