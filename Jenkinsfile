@@ -5,27 +5,33 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 checkout scm
-                echo "Checked out code from ${env.GIT_URL}"
+                echo "Checked out code successfully"
             }
         }
         
         stage('Run Tests') {
             steps {
                 script {
-                    // Simple test command - modify this for your project
-                    try {
-                        if (fileExists('pom.xml')) {
-                            sh 'mvn test'
-                        } else if (fileExists('package.json')) {
-                            sh 'npm install && npm test'
-                        } else {
-                            echo "No test configuration found"
-                            echo "Workspace contents:"
-                            sh 'ls -la'
-                            error("No test configuration found")
+                    // List of project directories to check
+                    def projects = ['Amazon', 'SKY', 'SpringCore', 'SpringDemo', 'SpringNew', 'test', 'Test']
+                    def tested = false
+                    
+                    projects.each { project ->
+                        dir(project) {
+                            if (fileExists('pom.xml')) {
+                                echo "Testing Maven project: ${project}"
+                                sh 'mvn test'
+                                tested = true
+                            } else if (fileExists('package.json')) {
+                                echo "Testing Node.js project: ${project}"
+                                sh 'npm install && npm test'
+                                tested = true
+                            }
                         }
-                    } catch (Exception e) {
-                        error("Tests failed: ${e.getMessage()}")
+                    }
+                    
+                    if (!tested) {
+                        error "No testable projects found in: ${projects}"
                     }
                 }
             }
@@ -34,9 +40,9 @@ pipeline {
     
     post {
         always {
-            echo "Test stage completed"
-            // Simple test results collection (won't fail if no reports exist)
-            junit allowEmptyResults: true, testResults: '**/test-results/*.xml'
+            // Collect test results from all projects
+            junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml,**/test-results/*.xml'
+            echo "Pipeline completed - ${currentBuild.currentResult}"
         }
     }
 }
