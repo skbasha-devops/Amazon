@@ -1,44 +1,14 @@
 pipeline {
     agent any
-    
     stages {
-        stage('Checkout') {
+        stage('Build & Deploy') {
             steps {
-                checkout scm
-            }
-        }
-        
-        stage('Deploy Project') {
-            steps {
-                script {
-                    // Change 'Amazon' to your project directory name
-                    dir('Amazon') {
-                        // For Maven projects
-                        if (fileExists('pom.xml')) {
-                            sh 'mvn deploy'
-                        } 
-                        // For Node.js projects
-                        else if (fileExists('package.json')) {
-                            sh 'npm install && npm deploy'
-                        }
-                        // For other projects
-                        else {
-                            error "No deploy configuration found in the project directory"
-                        }
-                    }
+                dir('Amazon') {
+                    sh 'mvn clean package deploy -DskipTests'  // For Maven
+                    // OR
+                    sh 'make package && make deploy-staging'   // For Make
                 }
             }
         }
     }
-    
-    post {
-        always {
-            // Collect deploy results if they exist
-         junit testResults: '**/target/surefire-reports/*.xml,**/deploy-results/*.xml'
-            
-            // Clean up workspace
-            cleanWs()
-        }
-    }
 }
-
