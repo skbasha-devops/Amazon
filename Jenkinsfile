@@ -9,7 +9,7 @@ pipeline {
         stage('Build') {
             steps {
                 dir('Amazon') {
-                    sh 'mvn clean verify'  // This runs tests and generates surefire-reports
+                    sh 'mvn clean verify'
                 }
             }
         }
@@ -27,14 +27,20 @@ pipeline {
         success {
             echo "✅ Build and Deploy succeeded!"
         }
+
         failure {
             echo "❌ Pipeline failed. Please check the console output."
         }
+
         always {
             echo "📦 Build and deploy completed - ${currentBuild.currentResult}"
 
             archiveArtifacts artifacts: 'Amazon/target/*.jar,Amazon/target/*.war,deploy-repo/**/*', allowEmptyArchive: true
 
-            // Gracefully handle missing test reports
             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                junit
+                junit 'Amazon/target/surefire-reports/*.xml'
+            }
+        }
+    }
+}  // ✅ this is the final closing brace that was missing
+
