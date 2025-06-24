@@ -3,7 +3,14 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                echo 'Running default build'
+                echo 'Building with tests'
+                sh 'make'
+            }
+        }
+        stage('Test') {
+            steps {
+                echo 'Running unit tests'
+                sh 'make test'
             }
         }
     }
