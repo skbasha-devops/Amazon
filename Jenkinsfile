@@ -34,8 +34,7 @@ pipeline {
     post {
         always {
             // Collect deploy results if they exist
-            junit allowEmptyResults: true, 
-                  deployResults: '**/target/surefire-reports/*.xml,**/deploy-results/*.xml'
+         junit testResults: '**/target/surefire-reports/*.xml,**/deploy-results/*.xml'
             
             // Clean up workspace
             cleanWs()
