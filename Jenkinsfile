@@ -1,42 +1,13 @@
 pipeline {
     agent any
     environment {
-        // Use PATH+EXTRA to append to PATH properly
-      //  PATH = "/usr/bin:/bin:/opt/homebrew/bin"
+        PATH = "${env.PATH}:/usr/games:/usr/local/games:/snap/bin"
     }
     stages {
-
-        stage('pull') {
+        stage('Test') {
             steps {
-                git branch: 'main', url: 'https://github.com/skbasha-devops/Amazon-Jenkins.git'
+                sh 'echo $PATH'
             }
         }
-        stage('compile test') {
-            steps {
-                sh 'mvn compile'
-            }
-        }
-
-        stage('build project') {
-            steps {
-                 sh 'mvn clean install'
-            }
-        }
-
-        
     }
-
-  post{
-
-  success{
-     echo 'Build success'
-  }
-    
-  failure{
-       echo 'Failure in the build'
-   }
-
-  }
-
-
 }
