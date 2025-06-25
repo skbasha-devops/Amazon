@@ -1,10 +1,13 @@
+// Add this to your Jenkinsfile
 pipeline {
-    agent any
     stages {
-        stage('feature1.0') {
+        stage('PR Build') {
+            when { 
+                changeRequest()  // Critical for PR detection
+            }
             steps {
-                echo 'Running basic build'
-                sh 'make'
+                echo "Building PR #${env.CHANGE_ID} from ${env.CHANGE_BRANCH}"
+                // PR-specific build steps
             }
         }
     }
