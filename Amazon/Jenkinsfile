@@ -1,1 +1,14 @@
-ls
+pipeline {
+    agent any
+    environment {
+        PATH = "${env.PATH}:/usr/games:/usr/local/games:/snap/bin"
+    }
+    stages {
+        stage('Show Path') {
+            steps {
+                sh 'echo $PATH'
+            }
+        }
+    }
+}
+
