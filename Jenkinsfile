@@ -4,7 +4,6 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                // Your build steps here
                 echo "Building the application..."
             }
         }
@@ -19,19 +18,12 @@ pipeline {
                         <p>Build Number: ${env.BUILD_NUMBER}</p>
                         <p>Build URL: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
                         <p>Commit Message: ${env.GIT_COMMIT_MESSAGE ?: 'N/A'}</p>""",
-                to: 'devops-team@jenkins.com',
+                to: 'khaju452@gmail.com,unkhaju452@gmail.com',
+                replyTo: 'khaju452@gmail.com',
                 recipientProviders: [[$class: 'DevelopersRecipientProvider']],
                 attachLog: true,
                 compressLog: true
             )
-        }
-        
-        success {
-            echo "This will run only if successful"
-        }
-        
-        failure {
-            echo "This will run only if failed"
         }
     }
 }
