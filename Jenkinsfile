@@ -11,19 +11,20 @@ pipeline {
     
     post {
         always {
-            emailext (
-                subject: "'${env.JOB_NAME}' (${env.BUILD_NUMBER}) - BUILD ${currentBuild.currentResult}",
-                body: """<p>Build Status: <strong>${currentBuild.currentResult}</strong></p>
-                        <p>Project: ${env.JOB_NAME}</p>
-                        <p>Build Number: ${env.BUILD_NUMBER}</p>
-                        <p>Build URL: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
-                        <p>Commit Message: ${env.GIT_COMMIT_MESSAGE ?: 'N/A'}</p>""",
-                to: 'khaju452@gmail.com,unkhaju452@gmail.com',
-                replyTo: 'khaju452@gmail.com',
-                recipientProviders: [[$class: 'DevelopersRecipientProvider']],
-                attachLog: true,
-                compressLog: true
-            )
+            script {
+                // Debug output to verify variables
+                echo "JOB_NAME: ${env.JOB_NAME}"
+                echo "BUILD_URL: ${env.BUILD_URL}"
+                
+                // Force email sending with minimal configuration
+                emailext (
+                    subject: "TEST: ${env.JOB_NAME} Build Notification",
+                    body: "This is a test email from Jenkins.\nBuild URL: ${env.BUILD_URL}",
+                    to: 'khaju452@gmail.com',  // Use your actual email
+                    recipientProviders: [],
+                    mimeType: 'text/plain'
+                )
+            }
         }
     }
 }
