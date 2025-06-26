@@ -9,7 +9,7 @@ pipeline {
             }
         }
         
-        stage('Build new') {
+        stage('Build') {
             steps {
                 script {
                     // Simple build steps that work on most Jenkins environments
