@@ -1,18 +1,26 @@
 pipeline {
-    agent any  // ← THIS IS REQUIRED
-    
+    agent any
+
     stages {
         stage('Build') {
             steps {
-                echo "Building branch ${env.BRANCH_NAME}"
-                // Your build commands here
+                echo 'Running build...'
             }
         }
-        stage('Test') {
-            steps {
-                echo "Testing branch ${env.BRANCH_NAME}"
-                // Your test commands here
-            }
+    }
+
+    post {
+        always {
+            emailext(
+                subject: "Build ${currentBuild.currentResult}: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+                <p><b>Build Result:</b> ${currentBuild.currentResult}</p>
+                <p><b>Job:</b> ${env.JOB_NAME}</p>
+                <p><b>Build Number:</b> ${env.BUILD_NUMBER}</p>
+                <p><b>Build URL:</b> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                """,
+                to: 'devteam@example.com'
+            )
         }
     }
 }
