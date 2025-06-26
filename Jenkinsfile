@@ -1,12 +1,17 @@
 pipeline {
     agent any
-PATH="/opt/gradle/latest/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+
+    environment {
+        PATH = "${env.PATH}:/opt/gradle/latest/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    }
+
     stages {
-        stage('clone project'){
-            step{
-                git branch:'deploy-stage',url:'https://github.com/skbasha-devops/Amazon'
+        stage('Clone Project') {
+            steps {
+                git branch: 'deploy-stage', url: 'https://github.com/skbasha-devops/Amazon'
             }
         }
+
         stage('Build') {
             steps {
                 dir('Amazon') {
@@ -51,7 +56,4 @@ PATH="/opt/gradle/latest/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/
         }
     }
 }
-
-
-
 
