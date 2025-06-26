@@ -19,7 +19,7 @@ pipeline {
                 <p><b>Build Number:</b> ${env.BUILD_NUMBER}</p>
                 <p><b>Build URL:</b> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
                 """,
-                to: 'devteam@example.com'
+                to: 'abcbatch11@gmail.com'
             )
         }
     }
