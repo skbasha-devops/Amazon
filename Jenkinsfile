@@ -11,20 +11,20 @@ pipeline {
     
     post {
         always {
-            script {
-                // Debug output to verify variables
-                echo "JOB_NAME: ${env.JOB_NAME}"
-                echo "BUILD_URL: ${env.BUILD_URL}"
-                
-                // Force email sending with minimal configuration
-                emailext (
-                    subject: "TEST: ${env.JOB_NAME} Build Notification",
-                    body: "This is a test email from Jenkins.\nBuild URL: ${env.BUILD_URL}",
-                    to: 'khaju452@gmail.com',  // Use your actual email
-                    recipientProviders: [],
-                    mimeType: 'text/plain'
-                )
-            }
+            emailext (
+                subject: "'${env.JOB_NAME}' Build #${env.BUILD_NUMBER} - Result: ${currentBuild.currentResult}",
+                body: """<h2>Build Status Notification</h2>
+                        <p><strong>Project:</strong> ${env.JOB_NAME}</p>
+                        <p><strong>Build Number:</strong> ${env.BUILD_NUMBER}</p>
+                        <p><strong>Status:</strong> ${currentBuild.currentResult}</p>
+                        <p><strong>Duration:</strong> ${currentBuild.durationString}</p>
+                        <p><a href="${env.BUILD_URL}">View Build Details</a></p>
+                        ${CHANGES, showPaths=true, format="<h3>Changes:</h3><ul>%a: %m</ul>"}""",
+                to: 'khaju452@gmail.com,unkhaju452@gmail.com',
+                replyTo: 'khaju452@gmail.com',
+                attachLog: true,
+                compressLog: true
+            )
         }
     }
 }
