@@ -1,8 +1,13 @@
+variable "f1" {
+  type    = string
+  default = "abc.txt"
+}
+
 resource "local_file" "res1" {
   filename = var.f1
-  content  = var.f1  # CORRECT: using equals sign
+  content  = var.f1
 }
-variable f1 {
-type = string
-default = "abc.txt"
+
+output "file_output" {
+  value = local_file.res1.filename
 }
